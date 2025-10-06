@@ -1,0 +1,144 @@
+import React, { useState, useEffect } from "react";
+
+function Hunt() {
+    const [file, setFile] = useState(null);
+    const [huntItems, setHuntItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const API_URL = process.env.REACT_APP_API_URL || "http://192.168.110.18:8000";
+
+    useEffect(() => {
+        // Fetch scavenger hunt items
+        fetch(`${API_URL}/items`)
+            .then((res) => res.json())
+            .then((data) => {
+                const items = data.items.map((item) => ({
+                    ...item,
+                    found: false,
+                    userImage: null,
+                }));
+                setHuntItems(items);
+            });
+    }, [API_URL]);
+
+    const handleUpload = async () => {
+        if (!file) return;
+
+        setLoading(true);
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await fetch(`${API_URL}/upload`, {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // Mark the matched item as found and save images
+                setHuntItems((prev) =>
+                    prev.map((i) =>
+                        i.id === data.item.id
+                            ? {
+                                ...i,
+                                found: true,
+                                userImage: URL.createObjectURL(file),
+                                refImage: data.item.image_url,
+                            }
+                            : i
+                    )
+                );
+            } else {
+                alert("❌ No match. Try again!");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("⚠️ Error uploading image");
+        } finally {
+            setLoading(false);
+            setFile(null);
+        }
+    };
+
+    const allFound = huntItems.length > 0 && huntItems.every((i) => i.found);
+
+    return (
+        <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
+            <h2>Pinecone Scavenger Hunt</h2>
+
+            {/* Checklist */}
+            <h3>Your Hunt List</h3>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+                {huntItems.map((item) => (
+                    <li
+                        key={item.id}
+                        style={{
+                            marginBottom: "1.5rem",
+                            borderBottom: "1px solid #eee",
+                            paddingBottom: "1rem",
+                        }}
+                    >
+                        <div>
+                            {item.found ? "✅" : "❌"} {item.description}
+                        </div>
+
+                        {item.found && (
+                            <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
+                                <div>
+                                    <h4 style={{ margin: "0.25rem 0" }}>Your Photo</h4>
+                                    <img
+                                        src={item.userImage}
+                                        alt="Your upload"
+                                        style={{
+                                            maxWidth: "150px",
+                                            borderRadius: "8px",
+                                            border: "2px solid #ccc",
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <h4 style={{ margin: "0.25rem 0" }}>Match</h4>
+                                    <img
+                                        src={item.refImage}
+                                        alt={item.name}
+                                        style={{
+                                            maxWidth: "150px",
+                                            borderRadius: "8px",
+                                            border: "2px solid #4CAF50",
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+
+            {/* Upload UI */}
+            {!allFound && (
+                <div>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={(e) => setFile(e.target.files[0])}
+                    />
+                    <button onClick={handleUpload} disabled={!file || loading}>
+                        {loading ? "Checking..." : "Upload"}
+                    </button>
+                </div>
+            )}
+
+            {/* Winning screen */}
+            {allFound && (
+                <div style={{ marginTop: "2rem", color: "#4CAF50" }}>
+                    <h2>🎉 Congratulations! You found all the items!</h2>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default Hunt;
