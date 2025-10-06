@@ -1,0 +1,9 @@
+.idea
+.venv
+config.json
+judge_logs.jsonl
+scavenger.db
+user_uploads
+resized
+images
+TestPictures
