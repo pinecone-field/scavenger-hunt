@@ -8,9 +8,10 @@ from pinecone import Pinecone
 from openai import OpenAI
 from pinecone import ServerlessSpec
 import json
+import time
 
 # --- Load Config.json and set globals ---
-CONFIG_PATH = "config.json"
+CONFIG_PATH = "../config.json"
 if not os.path.exists(CONFIG_PATH):
     raise FileNotFoundError("Missing config.json file")
 
@@ -133,6 +134,8 @@ for filename in os.listdir(IMAGES_DIR):
             )
         )
         print(f"✅ {filename}: {description}")
+
+        time.sleep(2)
 
 if vectors:
     index.upsert(vectors)
