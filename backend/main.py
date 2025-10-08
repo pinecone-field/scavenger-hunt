@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session as DBSession
 
 
 # --- Load Config.json and set globals ---
-CONFIG_PATH = "config.json"
+CONFIG_PATH = "../config.json"
 if not os.path.exists(CONFIG_PATH):
     raise FileNotFoundError("Missing config.json file")
 
@@ -35,7 +35,7 @@ MODEL = config["MODEL"]
 # Config & globals
 # =========================
 EMBED_DIM = DIMENSION
-TOP_K = 3
+TOP_K = 2
 EMBED_SCORE_THRESHOLD = config["EMBED_SCORE_THRESHOLD"]
 
 UPLOAD_DIR = "user_uploads"
